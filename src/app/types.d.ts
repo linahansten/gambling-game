@@ -1,0 +1,1 @@
+export type HandType = {name:string, value:number}

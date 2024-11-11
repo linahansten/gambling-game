@@ -1,5 +1,7 @@
 'use client'
 
+import { Suspense } from 'react';
+import type { HandType } from './types';
 import React, { useState, useEffect } from 'react';
 
 // Define suits and values using specified emojis
@@ -28,7 +30,7 @@ const getRandomCard = () => {
 };
 
 // Calculate total hand value
-const calculateHandValue = (hand) => {
+const calculateHandValue = (hand:HandType[]) => {
   let value = hand.reduce((acc, card) => acc + card.value, 0);
   let aceCount = hand.filter(card => card.name === 'A').length;
 
@@ -42,7 +44,7 @@ const calculateHandValue = (hand) => {
 };
 
 // Card Component
-const Card = ({ card, hidden }) => (
+const Card = ({ card, hidden }:{card:{name:string; suit:string} , hidden:boolean}) => (
   <div className={`w-32 h-48 ${hidden ? 'bg-gray-800' : 'bg-white'} border border-gray-300 rounded-lg shadow-lg flex flex-col items-center justify-center m-2 relative transition-transform transform hover:scale-105`}>
     {hidden ? (
       <div className="text-xl text-white font-semibold">Hidden</div>
@@ -78,7 +80,7 @@ const BlackjackGame = () => {
 
   // Handle the robot's actions (hit until it reaches 17 or higher)
   useEffect(() => {
-    let robotPlays;
+    let robotPlays: NodeJS.Timeout;
 
     if (!playerTurn && !gameOver) {
       robotPlays = setInterval(() => {
@@ -92,7 +94,7 @@ const BlackjackGame = () => {
     }
 
     return () => clearInterval(robotPlays); // Clear interval on component unmount
-  }, [playerTurn, robotHandValue, gameOver]);
+  });
 
   // Function to handle hitting (drawing a card)
   const hit = () => {
@@ -145,14 +147,16 @@ const BlackjackGame = () => {
         <div className="text-white text-2xl mb-4 w-1/2">
           <h2 className="text-center mb-2 text-xl font-semibold">Your Hand:</h2>
           <div className="flex justify-center">
-            {playerHand.map((card, index) => <Card key={index} card={card} />)}
+            <Suspense fallback ={"loading"}>
+            {playerHand.map((card, index) => <Card key={index} card={card} hidden={false} />)}
+            </Suspense>
           </div>
           <div className="text-center text-xl font-bold mt-2">Value: {playerHandValue}</div>
         </div>
 
         {/* Robot's Hand */}
         <div className="text-white text-2xl mb-4 w-1/2">
-          <h2 className="text-center mb-2 text-xl font-semibold">Robot's Hand:</h2>
+          <h2 className="text-center mb-2 text-xl font-semibold">Robot&apos;s Hand:</h2>
           <div className="flex flex-wrap justify-center">
             {robotHand.map((card, index) => (
               <Card key={index} card={index === 0 && playerTurn ? { name: 'Hidden', suit: '' } : card} hidden={index === 0 && playerTurn} />
